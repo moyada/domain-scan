@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/openrdap/rdap/bootstrap"
 	"net/http"
 	"time"
@@ -44,7 +43,7 @@ func rdapQuery(host, domain string) bool {
 
 	resp, err := client.Get(api + host + domain)
 	if err != nil {
-		fmt.Println(err)
+		//fmt.Println(err)
 		return whois(host + domain)
 	}
 	return resp.StatusCode == http.StatusOK
