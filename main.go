@@ -6,6 +6,10 @@ import (
 	//"sort"
 )
 
+const (
+	concurrency = 32
+)
+
 func main() {
 	p := flag.String("p", "", "")
 	d := flag.String("d", ".com", "")
@@ -19,45 +23,41 @@ func main() {
 	prefix := *p
 	domain := *d
 
-	//size := len(enWords) * len(enWords)
-	task := make(chan bool, 512)
-	size := 0
-	//result := make(chan string, size)
+	task := make(chan bool, concurrency)
+	for i := 0; i < concurrency; i++ {
+		task <- true
+	}
 
 	g := New(*s)
+	c := Console{}
+
 	for {
 		host := g.Next()
 		if host == "" {
 			break
 		}
-		size++
-		go queryPrint(prefix+host, domain, task)
+		<-task
+		go queryPrint(prefix+host, domain, &c, task)
 	}
 
-	for i := 0; i < size; i++ {
+	for i := 0; i < concurrency; i++ {
 		<-task
 	}
 
-	//l := len(result)
-	//r := make([]string, 0, l)
-	//for i := 0; i < l; i++ {
-	//	r = append(r, <-result)
-	//}
-	//
-	//sort.Strings(r)
-	//for _, s := range r {
-	//	fmt.Println(s)
-	//}
-
-	fmt.Println("domain scan completed")
+	fmt.Println("Domain Scan Completed.")
 }
 
-func tes() {
+func main1() {
 	topDomain := "angs.com"
-	if !dns(topDomain) {
-		fmt.Println("dns:", topDomain)
-	} else if !checkWhois("angs", ".com") {
-		fmt.Println("dns:", topDomain)
+	count := dns(topDomain)
+	fmt.Println(count)
+	switch {
+	case count > 0:
+		fmt.Println(topDomain)
+	case count == -1:
+		if !checkWhois("angs", ".com") {
+			fmt.Println(topDomain)
+		}
 	}
 }
 
